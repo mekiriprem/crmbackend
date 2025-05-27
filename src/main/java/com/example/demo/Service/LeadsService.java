@@ -1,0 +1,151 @@
+package com.example.demo.Service;
+
+import com.example.demo.DTO.LeadUpdateDto;
+import com.example.demo.Entity.Leads;
+import com.example.demo.Repository.LeadsRepo;
+import org.apache.commons.csv.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class LeadsService {
+
+    @Autowired
+    private LeadsRepo leadsRepository;
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+    public String uploadCSV(MultipartFile file) {
+        try (Reader reader = new InputStreamReader(file.getInputStream())) {
+            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
+            List<Leads> leadsList = new ArrayList<>();
+
+            for (CSVRecord record : csvParser) {
+                Leads lead = new Leads();
+
+                lead.setName(getValue(record, "Name"));
+                lead.setContactNo(getValue(record, "ContactNo"));
+                lead.setEmail(getValue(record, "Email"));
+                lead.setStatus(getValue(record, "Status"));
+                lead.setActionStatus(getValue(record, "ActionStatus"));
+                lead.setAssignedTo(getValue(record, "AssignedTo"));
+
+                // Convert comma-separated interests into a List<String>
+               lead.setInterests(getValue(record, "Intrests"));
+
+                lead.setRemarks(getValue(record, "Remarks"));
+                lead.setActionTaken(getValue(record, "ActionTaken"));
+                lead.setCompanyName(getValue(record, "CompanyName"));
+                lead.setIndustry(getValue(record, "Industry"));
+                lead.setCity(getValue(record, "City"));
+                lead.setState(getValue(record, "State"));
+                
+                
+
+                // Date parsing with null safety
+                try {
+                    String followUpStr = getValue(record, "FollowUp");
+                    lead.setFollowUp((followUpStr != null && !followUpStr.isBlank())
+                            ? sdf.parse(followUpStr)
+                            : null);
+                } catch (Exception e) {
+                    lead.setFollowUp(null); // fallback if parsing fails
+                }
+
+                lead.setLastUpdated(new Date());
+                leadsList.add(lead);
+            }
+
+            leadsRepository.saveAll(leadsList);
+            return "Upload successful! Imported " + leadsList.size() + " leads.";
+
+        } catch (Exception e) {
+            return "Upload failed: " + e.getMessage();
+        }
+    }
+
+
+    public void writeLeadsToCsv(OutputStream os) throws IOException {
+        List<Leads> leads = leadsRepository.findAll();
+
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os));
+             CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
+                     "Id", "Name", "ContactNo", "Email", "Status", "ActionStatus",
+                     "AssignedTo", "Intrests", "Remarks", "ActionTaken", "CompanyName",
+                     "Industry", "City", "State", "FollowUp", "LastUpdated"
+             ))) {
+
+            for (Leads lead : leads) {
+                csvPrinter.printRecord(
+                        lead.getId(),
+                        lead.getName(),
+                        lead.getContactNo(),
+                        lead.getEmail(),
+                        lead.getStatus(),
+                        lead.getActionStatus(),
+                        lead.getAssignedTo(),
+                        lead.getInterests(),
+                        lead.getRemarks(),
+                        lead.getActionTaken(),
+                        lead.getCompanyName(),
+                        lead.getIndustry(),
+                        lead.getCity(),
+                        lead.getState(),
+                        lead.getFollowUp() != null ? sdf.format(lead.getFollowUp()) : "",
+                        lead.getLastUpdated() != null ? sdf.format(lead.getLastUpdated()) : ""
+                );
+            }
+        }
+    }
+
+    public String assignLeads(List<String> leadIds, String bdaId, String bdaName) {
+        List<Integer> intIds = leadIds.stream().map(Integer::parseInt).toList();
+        List<Leads> leads = leadsRepository.findAllById(intIds);
+
+        for (Leads lead : leads) {
+            lead.setAssignedTo(bdaName); // You can also store bdaId if you have a column
+            lead.setLastUpdated(new Date());
+        }
+
+        leadsRepository.saveAll(leads);
+        return "Assigned successfully";
+    }
+
+    public String updateLead(Integer id, LeadUpdateDto dto) {
+        Optional<Leads> optionalLead = leadsRepository.findById(id);
+        if (optionalLead.isEmpty()) {
+            return "Lead not found with ID: " + id;
+        }
+
+        Leads lead = optionalLead.get();
+
+        if (dto.getName() != null) lead.setName(dto.getName());
+        if (dto.getEmail() != null) lead.setEmail(dto.getEmail());
+        if (dto.getContactNo() != null) lead.setContactNo(dto.getContactNo());
+        if (dto.getStatus() != null) lead.setStatus(dto.getStatus());
+        if (dto.getActionStatus() != null) lead.setActionStatus(dto.getActionStatus());
+        if (dto.getAssignedTo() != null) lead.setAssignedTo(dto.getAssignedTo());
+        if (dto.getInterests() != null) lead.setInterests(dto.getInterests());
+        if (dto.getRemarks() != null) lead.setRemarks(dto.getRemarks());
+        if (dto.getActionTaken() != null) lead.setActionTaken(dto.getActionTaken());
+        if (dto.getFollowUp() != null) lead.setFollowUp(dto.getFollowUp());
+
+
+        lead.setLastUpdated(new Date());
+        
+
+        leadsRepository.save(lead);
+        return "Lead updated successfully";
+    }
+
+    // Utility method to safely get CSV value
+    private String getValue(CSVRecord record, String column) {
+        return record.isMapped(column) && !record.get(column).isEmpty() ? record.get(column) : "";
+    }
+}
