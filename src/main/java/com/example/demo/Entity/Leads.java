@@ -22,7 +22,7 @@ public class Leads {
     private String Status;
     private String ActionStatus;
     private String AssignedTo;
-    private String interests;  
+    private String Intrests;  
     private String Remarks;
     private String ActionTaken;
   
