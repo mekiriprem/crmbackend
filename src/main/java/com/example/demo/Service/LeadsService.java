@@ -1,10 +1,16 @@
 package com.example.demo.Service;
 
 import com.example.demo.DTO.LeadUpdateDto;
+import com.example.demo.Entity.LeadUpdateHistory;
 import com.example.demo.Entity.Leads;
+import com.example.demo.Entity.profiles;
+import com.example.demo.Repository.LeadUpdateHistoryRepository;
 import com.example.demo.Repository.LeadsRepo;
+import com.example.demo.Repository.profilesRepo;
+
 import org.apache.commons.csv.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.config.Profiles;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +24,12 @@ public class LeadsService {
 
     @Autowired
     private LeadsRepo leadsRepository;
+    
+    @Autowired
+    private LeadUpdateHistoryRepository historyRepository;
+    
+    @Autowired
+    private profilesRepo  profilesRepository;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -36,8 +48,8 @@ public class LeadsService {
                 lead.setActionStatus(getValue(record, "ActionStatus"));
                 lead.setAssignedTo(getValue(record, "AssignedTo"));
 
-                // Convert comma-separated interests into a List<String>
-               lead.setInterests(getValue(record, "Intrests"));
+                // Convert comma-separated interests into a List<String>aa
+               lead.setIntrests(getValue(record, "Intrests"));
 
                 lead.setRemarks(getValue(record, "Remarks"));
                 lead.setActionTaken(getValue(record, "ActionTaken"));
@@ -90,7 +102,7 @@ public class LeadsService {
                         lead.getStatus(),
                         lead.getActionStatus(),
                         lead.getAssignedTo(),
-                        lead.getInterests(),
+                        lead.getIntrests(),
                         lead.getRemarks(),
                         lead.getActionTaken(),
                         lead.getCompanyName(),
@@ -131,13 +143,33 @@ public class LeadsService {
         if (dto.getStatus() != null) lead.setStatus(dto.getStatus());
         if (dto.getActionStatus() != null) lead.setActionStatus(dto.getActionStatus());
         if (dto.getAssignedTo() != null) lead.setAssignedTo(dto.getAssignedTo());
-        if (dto.getInterests() != null) lead.setInterests(dto.getInterests());
+        if (dto.getIntrests() != null) lead.setIntrests(dto.getIntrests());
         if (dto.getRemarks() != null) lead.setRemarks(dto.getRemarks());
         if (dto.getActionTaken() != null) lead.setActionTaken(dto.getActionTaken());
         if (dto.getFollowUp() != null) lead.setFollowUp(dto.getFollowUp());
 
 
         lead.setLastUpdated(new Date());
+        
+        LeadUpdateHistory history = new LeadUpdateHistory();
+        
+        history.setLead(lead);
+        
+        profiles user = profilesRepository.findById(dto.getLoggedinId())
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + dto.getLoggedinId()));
+            history.setUpdatedByUserId(user);
+
+
+
+       
+       
+        history.setRemarks(dto.getRemarks());
+        history.setStatus(dto.getStatus());
+        history.setActionStatus(dto.getActionStatus());
+        history.setActionTaken(dto.getActionTaken());
+        history.setUpdatedAt(new Date());
+
+        historyRepository.save(history);
         
 
         leadsRepository.save(lead);

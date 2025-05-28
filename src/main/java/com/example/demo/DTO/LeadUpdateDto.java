@@ -18,10 +18,10 @@ public class LeadUpdateDto {
     private String type;
     private String status;
     private String assignedTo;
-    private Integer assignedBdaId;
+    private Integer loggedinId;
     private Date followUp;
     private String temperature;
-    private String interests; // ✅ fix this
+    private String intrests; // ✅ fix this
     private String remarks;
     private String companyName;
     private String city;
@@ -30,6 +30,8 @@ public class LeadUpdateDto {
     private String actionTaken;
     private String createdAt;
     private String lastUpdated;
+    
+
 
     // Getters and setters...
 }
