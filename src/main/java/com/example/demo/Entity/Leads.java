@@ -28,6 +28,7 @@ public class Leads {
   
     private Date  FollowUp;
     private Date  LastUpdated;
+   
     
     private String CompanyName;
     private String Industry;
