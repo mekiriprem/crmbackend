@@ -160,7 +160,6 @@ public class LeadsService {
             history.setUpdatedByUserId(user);
 
 
-
        
        
         history.setRemarks(dto.getRemarks());
@@ -180,4 +179,16 @@ public class LeadsService {
     private String getValue(CSVRecord record, String column) {
         return record.isMapped(column) && !record.get(column).isEmpty() ? record.get(column) : "";
     }
+    
+    public List<LeadUpdateHistory> getHistoryByLeadId(Integer leadId) {
+        return historyRepository.findByLeadIdOrderByUpdatedAtDesc(leadId);
+    }
+    
+    public List<LeadUpdateHistory> getAllHistory() {
+        return historyRepository.findAllByOrderByUpdatedAtDesc();
+    }
+    public List<LeadUpdateHistory> getHistoryByUserId(Integer userId) {
+        return historyRepository.findByUpdatedByUserIdIdOrderByUpdatedAtDesc(userId);
+    }
+
 }

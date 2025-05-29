@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.DTO.LeadUpdateDto;
+import com.example.demo.DTO.LeadUpdateHistoryDto;
+import com.example.demo.Entity.LeadUpdateHistory;
 import com.example.demo.Entity.Leads;
 import com.example.demo.Repository.LeadsRepo;
 import com.example.demo.Service.LeadsService;
@@ -33,7 +35,7 @@ public class LeadsController {
 
     @Autowired
     private LeadsRepo leadsRepo;
-
+ 
     // ✅ Upload CSV
     @PostMapping("/upload")
     public ResponseEntity<String> uploadCSV(@RequestParam("file") MultipartFile file) {
@@ -83,6 +85,31 @@ public class LeadsController {
     public String assignLeads(@RequestBody LeadAssignmentRequest request) {
         return leadsService.assignLeads(request.getLeadIds(), request.getBdaId(), request.getBdaName());
     }
+    
+    @GetMapping("/{leadId}/history")
+    public List<LeadUpdateHistoryDto> getLeadHistory(@PathVariable Integer leadId) {
+        return leadsService.getHistoryByLeadId(leadId).stream()
+                .map(LeadUpdateHistoryDto::new)
+                .toList();
+    }
+    @GetMapping("/history")
+    public List<LeadUpdateHistoryDto> getAllLeadHistory() {
+        return leadsService.getAllHistory().stream()
+                .map(LeadUpdateHistoryDto::new)
+                .toList();
+    }
+
+    // ✅ Get history by user ID
+    @GetMapping("/history/user/{userId}")
+    public List<LeadUpdateHistoryDto> getHistoryByUserId(@PathVariable Integer userId) {
+        return leadsService.getHistoryByUserId(userId).stream()
+                .map(LeadUpdateHistoryDto::new)
+                .toList();
+    }
+    
+    
+
+
 
   
 }
