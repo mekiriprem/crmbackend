@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class BulkDeleteDto {
    
-    private List<Integer> leadIds;
+    private List<String> leadIds;
 }

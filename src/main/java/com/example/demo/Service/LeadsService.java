@@ -195,20 +195,29 @@ public class LeadsService {
         void bulkDeleteLeads(List<Long> leadIds) throws IllegalArgumentException;
     }
 
-    public String deletemethod(Integer ID) {
-    	Optional<Leads> opt=leadsRepository.findById(ID);
-    	if(opt.isPresent()) {
-    		historyRepository.deleteById(ID);
-    		return "delete sucess!";
-    	}
-    	else {
-    		return "id not found!";
-    	}
-    }
     
-    public String deletemethod() {
-    	leadsRepository.deleteAll();
-    	return "delete sucsess!";
+    public String deleteSelectedLeads(List<String> leadIds) {
+        List<Integer> intIds = leadIds.stream().map(Integer::parseInt).toList();
+        List<Leads> leads = leadsRepository.findAllById(intIds);
+
+        if (leads.isEmpty()) {
+            return "No leads found with the provided IDs.";
+        }
+
+        // Optional: delete associated lead update history if needed
+        for (Leads lead : leads) {
+            historyRepository.deleteAll(
+                historyRepository.findByLeadIdOrderByUpdatedAtDesc(lead.getId())
+            );
+        }
+
+        leadsRepository.deleteAll(leads);
+        return "Deleted " + leads.size() + " lead(s) successfully.";
     }
+
+
+
+    
+  
 
 }

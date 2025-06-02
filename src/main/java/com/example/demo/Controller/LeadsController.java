@@ -110,18 +110,12 @@ public class LeadsController {
                 .toList();
     }
     
-    
-    @DeleteMapping("/delete/{ID}")
-    public ResponseEntity<String> bulkDeleteLeads(@PathVariable Integer ID) {
-         
-            String str=leadsService.deletemethod(ID);
-            return new ResponseEntity<String> (str,HttpStatus.OK);
-    }
-    
     @DeleteMapping("/bulk-delete")
-    public ResponseEntity<String> bulkDeleteLeads(){
-    String str=	leadsService.deletemethod();
-    return new ResponseEntity<String> (str,HttpStatus.OK);
+    public ResponseEntity<String> bulkDeleteLeads(@RequestBody BulkDeleteDto request) {
+        String result = leadsService.deleteSelectedLeads(request.getLeadIds());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
-  
+
+    
+
 }
