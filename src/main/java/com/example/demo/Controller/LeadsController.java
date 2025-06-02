@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.DTO.BulkDeleteDto;
 import com.example.demo.DTO.LeadUpdateDto;
 import com.example.demo.DTO.LeadUpdateHistoryDto;
-import com.example.demo.Entity.LeadUpdateHistory;
 import com.example.demo.Entity.Leads;
 import com.example.demo.Repository.LeadsRepo;
 import com.example.demo.Service.LeadsService;
@@ -108,5 +111,17 @@ public class LeadsController {
     }
     
     
+    @DeleteMapping("/delete/{ID}")
+    public ResponseEntity<String> bulkDeleteLeads(@PathVariable Integer ID) {
+         
+            String str=leadsService.deletemethod(ID);
+            return new ResponseEntity<String> (str,HttpStatus.OK);
+    }
+    
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<String> bulkDeleteLeads(){
+    String str=	leadsService.deletemethod();
+    return new ResponseEntity<String> (str,HttpStatus.OK);
+    }
   
 }

@@ -191,4 +191,24 @@ public class LeadsService {
         return historyRepository.findByUpdatedByUserIdIdOrderByUpdatedAtDesc(userId);
     }
 
+    public interface LeadService {
+        void bulkDeleteLeads(List<Long> leadIds) throws IllegalArgumentException;
+    }
+
+    public String deletemethod(Integer ID) {
+    	Optional<Leads> opt=leadsRepository.findById(ID);
+    	if(opt.isPresent()) {
+    		historyRepository.deleteById(ID);
+    		return "delete sucess!";
+    	}
+    	else {
+    		return "id not found!";
+    	}
+    }
+    
+    public String deletemethod() {
+    	leadsRepository.deleteAll();
+    	return "delete sucsess!";
+    }
+
 }
