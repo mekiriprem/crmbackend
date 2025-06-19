@@ -7,5 +7,7 @@ import com.example.demo.Entity.Leads;
 
 @Repository
 public interface LeadsRepo extends JpaRepository<Leads, Integer>{
+    boolean existsByEmail(String email);
+
 
 }

@@ -18,7 +18,7 @@ public class Leads {
     
     private String Name;
     private String ContactNo;
-    private String Email;
+    private String email;
     private String Status;
     private String ActionStatus;
     private String AssignedTo;

@@ -37,37 +37,40 @@ public class LeadsService {
         try (Reader reader = new InputStreamReader(file.getInputStream())) {
             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader());
             List<Leads> leadsList = new ArrayList<>();
+            List<String> skippedEmails = new ArrayList<>();
 
             for (CSVRecord record : csvParser) {
+                String email = getValue(record, "Email");
+
+                // ❌ Skip if email already exists
+                if (email != null && leadsRepository.existsByEmail(email)) {
+                    skippedEmails.add(email);
+                    continue;
+                }
+
                 Leads lead = new Leads();
 
                 lead.setName(getValue(record, "Name"));
                 lead.setContactNo(getValue(record, "ContactNo"));
-                lead.setEmail(getValue(record, "Email"));
+                lead.setEmail(email);
                 lead.setStatus(getValue(record, "Status"));
                 lead.setActionStatus(getValue(record, "ActionStatus"));
                 lead.setAssignedTo(getValue(record, "AssignedTo"));
-
-                // Convert comma-separated interests into a List<String>aa
-               lead.setIntrests(getValue(record, "Intrests"));
-
+                lead.setIntrests(getValue(record, "Intrests"));
                 lead.setRemarks(getValue(record, "Remarks"));
                 lead.setActionTaken(getValue(record, "ActionTaken"));
                 lead.setCompanyName(getValue(record, "CompanyName"));
                 lead.setIndustry(getValue(record, "Industry"));
                 lead.setCity(getValue(record, "City"));
                 lead.setState(getValue(record, "State"));
-                
-                
 
-                // Date parsing with null safety
                 try {
                     String followUpStr = getValue(record, "FollowUp");
                     lead.setFollowUp((followUpStr != null && !followUpStr.isBlank())
                             ? sdf.parse(followUpStr)
                             : null);
                 } catch (Exception e) {
-                    lead.setFollowUp(null); // fallback if parsing fails
+                    lead.setFollowUp(null);
                 }
 
                 lead.setLastUpdated(new Date());
@@ -75,12 +78,24 @@ public class LeadsService {
             }
 
             leadsRepository.saveAll(leadsList);
-            return "Upload successful! Imported " + leadsList.size() + " leads.";
+
+            StringBuilder response = new StringBuilder("Upload successful! Imported ")
+                    .append(leadsList.size())
+                    .append(" leads.");
+
+            if (!skippedEmails.isEmpty()) {
+                response.append(" Skipped ").append(skippedEmails.size())
+                        .append(" existing emails: ")
+                        .append(String.join(", ", skippedEmails));
+            }
+
+            return response.toString();
 
         } catch (Exception e) {
             return "Upload failed: " + e.getMessage();
         }
     }
+
 
 
     public void writeLeadsToCsv(OutputStream os) throws IOException {
